@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>planMap</title>
+
+    <style>
+        /* Set the size of the div element that contains the map */
+        #map {
+            height: 600px;
+            /* The height is 400 pixels */
+            width: 50%;
+            /* The width is the width of the web page */
+        }
+    </style>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col"></div>
+            <div class="col">
+                <h1>新竹景點規劃</h1>
+            </div>
+            <div class="col"></div>
+        </div>
+        <div class="row">
+            <!--The div element for the map -->
+            <div class="col-7" id="map"></div>
+            <div class="col ml-3">
+                <div class="row">
+                    <div class="form-group">
+                        <p>旅館</p>
+                        <select id="hotel" class="form-control" style="width:300px; height: 200px;" multiple>
+
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+                        <p>景點</p>
+                        <select id="view" class="form-control" style="width:300px;  height: 200px;" multiple>
+
+                        </select>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <button id="submit" class="mt-2">查詢路線</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script>
+
+        // Initialize and add the map
+        var url01 = "http://opendata.hccg.gov.tw/dataset/39ee314b-7ce7-4265-a6b5-b57f42392da8/resource/6a3a5f61-5383-419d-a94c-df710071a51e/download/20180321131425502.json";
+        var url02 = "http://opendata.hccg.gov.tw/dataset/7ea7e303-df62-4fbe-a84f-99bdd724b577/resource/c15a9c5f-f6cb-4da5-b8a6-5e7bc4c9eb08/download/20180501160733080.json";
+
+
+
+        function initMap() {
+
+            var directionsService = new google.maps.DirectionsService;
+            var directionsDisplay = new google.maps.DirectionsRenderer;
+
+
+
+            // The location of Uluru
+            var uluru = { lat: 24.801815, lng: 120.971459 };
+            // The map, centered at Uluru
+            var map = new google.maps.Map(
+                document.getElementById('map'), { zoom: 14, center: uluru });
+            // The marker, positioned at Uluru
+            //var marker = new google.maps.Marker({position: uluru, map: map});
+            directionsDisplay.setMap(map);
+            document.getElementById('submit').addEventListener('click', function () {
+                calculateAndDisplayRoute(directionsService, directionsDisplay);
+            });
+            $.ajax({
+                type: "get",
+                url: url01,
+                //data: "data",
+                dataType: "json",
+                success: function (response) {
+
+
+                    for (var i = 0; i < response.length; i++) {
+                        var html01 = "<option>" + response[i].旅館名稱 + "</option>";
+                        $("#hotel").append(html01);
+
+                        console.info(response[i].緯度);
+                        var myLatLngex = {
+                            lat: parseFloat(response[i].緯度),
+                            lng: parseFloat(response[i].經度)
+                        };
+
+                        var marker = new google.maps.Marker({
+                            map: map,
+                            icon: "http://icons.iconarchive.com/icons/dapino/summer-holiday/24/hotel-icon.png",
+                            position: myLatLngex,
+                            title: response[i].營業地址
+
+
+                        });
+                    }
+
+                }
+            });
+            $.ajax({
+                type: "get",
+                url: url02,
+                //data: "data",
+                dataType: "json",
+                success: function (response) {
+
+
+                    for (var i = 0; i < response.length; i++) {
+
+                        var html02 = "<option>" + response[i].古蹟名稱 + "</option>";
+                        $("#view").append(html02);
+
+
+
+                        console.info(response[i].緯度);
+                        var myLatLngex = {
+                            lat: parseFloat(response[i].緯度),
+                            lng: parseFloat(response[i].經度)
+                        };
+
+                        var marker = new google.maps.Marker({
+                            map: map,
+                            icon: "http://icons.iconarchive.com/icons/vectorizeimages/iconpack/24/map-icon.png",
+                            position: myLatLngex,
+                            title: response[i].古蹟名稱
+
+
+                        });
+                    }
+
+                }
+            });
+        }
+        function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+            var waypts = [];
+            var hotel_Array = document.getElementById('hotel');
+            for (var i = 0; i < hotel_Array.length; i++) {
+                if (hotel_Array.options[i].selected) {
+                    waypts.push({
+                        location: hotel_Array[i].value,
+                        stopover: true
+                    });
+                }
+            }
+            var view_Array = document.getElementById('view');
+            for (var i = 0; i < view_Array.length; i++) {
+                if (view_Array.options[i].selected) {
+                    waypts.push({
+                        location: view_Array[i].value,
+                        stopover: true
+                    });
+                }
+            }
+
+
+            directionsService.route({
+                origin: document.getElementById('hotel').value,
+                destination: document.getElementById('view').value,
+                waypoints: waypts,
+                optimizeWaypoints: true,
+                travelMode: 'DRIVING'
+            }, function (response, status) {
+                if (status === 'OK') {
+                    directionsDisplay.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+                // if (status === 'OK') {
+                //     directionsDisplay.setDirections(response);
+                //     var route = response.routes[0];
+                //     var summaryPanel = document.getElementById('directions-panel');
+                //     summaryPanel.innerHTML = '';
+                //     // For each route, display summary information.
+                //     for (var i = 0; i < route.legs.length; i++) {
+                //         var routeSegment = i + 1;
+                //         summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
+                //             '</b><br>';
+                //         summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
+                //         summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
+                //         summaryPanel.innerHTML += route.legs[i].distance.text + '<br><br>';
+                //     }
+                // } else {
+                //     window.alert('Directions request failed due to ' + status);
+                // }
+            });
+        }
+    </script>
+    <!--Load the API from the specified URL
+    * The async attribute allows the browser to render the page while the API loads
+    * The key parameter will contain your own API key (which is not needed for this tutorial)
+    * The callback parameter executes the initMap() function
+    -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB5VnrKtEbXGov9c2ucVtK6Xg3foOjxoHU&callback=initMap">
+        </script>
+</body>
+
+</html>

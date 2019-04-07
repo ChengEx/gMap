@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    /* Set the size of the div element that contains the map */
+    #map {
+      height: 600px;
+      /* The height is 400 pixels */
+      width: 100%;
+      /* The width is the width of the web page */
+    }
+  </style>
+</head>
+
+<body>
+  <h3>My Google Maps Demo</h3>
+  <!--The div element for the map -->
+  <div id="map"></div>
+  <script>
+
+    var point1 = null, point2 = null;
+
+    var directionsService = null;
+    var directionsDisplay = null;
+    // Initialize and add the map
+    window.onload = function () {
+      // The location of Uluru
+      var uluru = { lat: 24.801815, lng: 120.971459 };
+      // The map, centered at Uluru
+      var map = new google.maps.Map(
+        document.getElementById('map'), { zoom: 13, center: uluru });
+      // The marker, positioned at Uluru
+      //var marker = new google.maps.Marker({ position: uluru, map: map });
+
+
+      google.maps.event.addListener(map, 'click', function (event) {
+        var lattt = event.latLng.lat();
+        var lnggg = event.latLng.lng();
+        var myLatLngex = {
+          lat: lattt,
+          lng: lnggg
+        };
+        console.info(myLatLngex);
+        if (point1 == null) {
+          point1 = event.latLng.lat() + ',' + event.latLng.lng();
+          var marker = new google.maps.Marker({
+            map: map,
+            position: myLatLngex,
+
+          });
+          return;
+
+        }
+        if (point2 == null) {
+          point2 = event.latLng.lat() + ',' + event.latLng.lng();
+          var marker = new google.maps.Marker({
+            map: map,
+            position: myLatLngex,
+
+          });
+        }
+
+
+        //alert("Latitude: " + event.latLng.lat() + " " + ", longitude: " + event.latLng.lng());
+      });
+
+
+      // map.addListener('click', function (e) {
+      //   placeMarker(e.latLng, map);
+      // });
+
+      // function placeMarker(position, map) {
+      //   var marker = new google.maps.Marker({
+      //     position: position,
+      //     map: map
+      //   });
+
+      //   map.panTo(position);
+      // }
+
+
+    }
+  </script>
+  <!--Load the API from the specified URL
+    * The async attribute allows the browser to render the page while the API loads
+    * The key parameter will contain your own API key (which is not needed for this tutorial)
+    * The callback parameter executes the initMap() function
+    -->
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB5VnrKtEbXGov9c2ucVtK6Xg3foOjxoHU&callback=initMap">
+    </script>
+</body>
+
+</html>
